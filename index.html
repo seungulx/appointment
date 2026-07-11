@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>우리 약속해!</title>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #fff0f5; overflow: hidden; }
+        .container { background: white; padding: 30px; border-radius: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); width: 300px; height: 420px; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; box-sizing: border-box; position: relative; }
+        .page { display: none; width: 100%; flex-direction: column; align-items: center; }
+        .active { display: flex; }
+        .button-group { display: flex; gap: 10px; margin-top: 20px; align-items: center; }
+        .option-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-top: 20px; }
+        button { padding: 12px; border: none; border-radius: 15px; font-size: 14px; cursor: pointer; font-weight: bold; transition: all 0.3s ease; background: #ffeaa7; color: #d35400; }
+        button:hover { background: #fdcb6e; }
+        .btn-yes { background: #ff9f43; color: white; width: 120px; height: 50px; }
+        .btn-no { background: #54a0ff; color: white; width: 120px; height: 50px; }
+        .btn-prev { background: #54a0ff; color: white; width: 60px; height: 30px; font-size: 12px; margin-top: 20px; }
+        #messageBox { position: absolute; top: 15px; color: #ff7675; font-weight: bold; display: none; font-size: 14px; z-index: 10; }
+        input { width: 80%; padding: 15px; margin: 10px 0; border: 2px solid #ffeaa7; border-radius: 15px; box-sizing: border-box; }
+        
+        .no-placeholder { width: 120px; height: 50px; }
+        /* 초기에는 button-group의 흐름을 따르도록 설정 */
+        #noBtn { z-index: 100; touch-action: manipulation; }
+    </style>
+</head>
+<body>
+
+<form class="container" action="https://script.google.com/macros/s/AKfycbyXtCRGHp-7Itzp8rE1QN4WiwBvw3i4WLt89GrsWsVM1Jwts0LvkRraeJh0gPMoJgebBA/exec" method="POST" id="mainForm">
+    <div id="messageBox">날짜랑 시간을 알려줘야 만날 수 있어! 🥺</div>
+
+    <div id="page1" class="page active">
+        <h2>약속 잡을까? 🥺</h2>
+        <div class="button-group">
+            <button type="button" class="btn-yes" onclick="nextPage(2)">좋아!</button>
+            <button type="button" class="btn-no" id="noBtn">싫어..</button>
+        </div>
+    </div>
+
+    <div id="page2" class="page">
+        <h2>진짜 좋다고? 😳</h2>
+        <h4>좋다고 할 줄 몰랐어..</h4>
+        <button type="button" class="btn-yes" onclick="nextPage(3)">응응응응!!</button>
+    </div>
+
+    <div id="page3" class="page">
+        <h2>언제가 좋아? 📅</h2>
+        <input type="date" name="date" id="dateInput">
+        <input type="time" name="time" id="timeInput">
+        <button type="button" class="btn-yes" onclick="checkAndNext()">이때!</button>
+    </div>
+
+    <div id="page4" class="page">
+        <h2>뭐 하고 놀까? 🎨</h2>
+        <input type="hidden" name="activity" id="activityInput">
+        <div class="option-group">
+            <button type="button" onclick="finishSetup('영화')">영화 🎬</button>
+            <button type="button" onclick="finishSetup('밥')">밥 🍚</button>
+            <button type="button" onclick="finishSetup('술')">술 🍺</button>
+            <button type="button" onclick="finishSetup('놀이')">놀이 🎡</button>
+            <button type="button" style="grid-column: span 2;" onclick="nextPage(5)">기타 직접 입력</button>
+        </div>
+        <button type="button" class="btn-prev" onclick="nextPage(3)">이전</button>
+    </div>
+
+    <div id="page5" class="page">
+        <h2>어떤 거 하고 싶어? 📝</h2>
+        <input type="text" id="customActivity" placeholder="직접 입력하세요">
+        <button type="button" class="btn-yes" onclick="finishSetup()">완료!</button>
+        <button type="button" class="btn-prev" onclick="nextPage(4)">이전</button>
+    </div>
+
+    <div id="page6" class="page">
+        <h2 style="font-size: 18px;">싫다고 안 해줘서 기뻐! 🥰</h2>
+        <p style="font-size: 13px; margin: 5px;"><span id="displayTime"></span>시에 내가 데리러 갈게!</p>
+        <p style="font-size: 13px; margin: 5px;">재밌게 놀아보자, 기대돼! ✨</p>
+        <div style="border: 2px solid #ffeaa7; padding: 10px; border-radius: 15px; width: 90%; margin-top: 10px; background: #fffaf0; text-align: left;">
+            <p style="margin: 5px 0; font-weight: bold; font-size: 14px;">📅 데이트 약속</p>
+            <p style="margin: 3px 0; font-size: 13px;" id="summaryDate"></p>
+            <p style="margin: 3px 0; font-size: 13px;" id="summaryTime"></p>
+            <p style="margin: 3px 0; font-size: 13px;" id="summaryActivity"></p>
+        </div>
+        <button type="submit" class="btn-yes" style="margin-top: 15px;">전송하기</button>
+        <button type="button" class="btn-no" onclick="handleReload()" style="margin-top: 10px; width: 80px; height: 30px; font-size: 11px; padding: 0;">약속 또 잡기</button>
+    </div>
+</form>
+
+<script>
+    function jumpAway() {
+        const btn = document.getElementById('noBtn');
+        const container = document.querySelector('.container');
+        const rect = container.getBoundingClientRect();
+        
+        // 처음 한 번 도망갈 때 position을 absolute로 변경
+        btn.style.position = 'absolute';
+        
+        btn.style.left = (Math.random() * (rect.width - 150) + 10) + 'px';
+        btn.style.top = (Math.random() * (rect.height - 70) + 10) + 'px';
+    }
+
+    document.getElementById('noBtn').addEventListener('mouseover', jumpAway);
+    document.getElementById('noBtn').addEventListener('touchstart', (e) => { e.preventDefault(); jumpAway(); });
+    document.getElementById('noBtn').addEventListener('click', (e) => {
+        e.preventDefault();
+        jumpAway();
+    });
+
+    function nextPage(pageNum) {
+        document.getElementById('messageBox').style.display = 'none';
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById('page' + pageNum).classList.add('active');
+        // '싫어' 버튼은 페이지 1에서만 보여줌
+        document.getElementById('noBtn').style.display = (pageNum === 1) ? 'block' : 'none';
+    }
+
+    // 기타 기능 함수들은 동일 (handleReload, checkAndNext 등)
+    function handleReload() { location.reload(); }
+    function checkAndNext() { 
+        if(!document.getElementById('dateInput').value || !document.getElementById('timeInput').value) {
+            document.getElementById('messageBox').style.display = 'block';
+            return;
+        }
+        nextPage(4);
+    }
+    function finishSetup(activity) {
+        let finalActivity = activity || document.getElementById('customActivity').value;
+        document.getElementById('summaryDate').innerText = "날짜: " + document.getElementById('dateInput').value;
+        document.getElementById('summaryTime').innerText = "시간: " + document.getElementById('timeInput').value;
+        document.getElementById('summaryActivity').innerText = "일정: " + finalActivity;
+        document.getElementById('displayTime').innerText = document.getElementById('timeInput').value;
+        document.getElementById('activityInput').value = finalActivity;
+        nextPage(6);
+    }
+
+    document.getElementById('mainForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        fetch(this.action, { method: 'POST', body: new FormData(this) })
+        .then(() => alert("잘 전달되었어. 그떄 보자~ 🥰"));
+    });
+</script>
+</body>
+</html>
